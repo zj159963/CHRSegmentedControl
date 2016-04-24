@@ -13,6 +13,7 @@
 		83F4B05B1CCD00D900BA4647 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 83F4B0591CCD00D900BA4647 /* Main.storyboard */; };
 		83F4B05D1CCD00D900BA4647 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 83F4B05C1CCD00D900BA4647 /* Assets.xcassets */; };
 		83F4B0601CCD00D900BA4647 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 83F4B05E1CCD00D900BA4647 /* LaunchScreen.storyboard */; };
+		83F4B06A1CCD01BE00BA4647 /* CHRSegmentedControl.m in Sources */ = {isa = PBXBuildFile; fileRef = 83F4B0691CCD01BE00BA4647 /* CHRSegmentedControl.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,8 @@
 		83F4B05C1CCD00D900BA4647 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		83F4B05F1CCD00D900BA4647 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		83F4B0611CCD00D900BA4647 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		83F4B0681CCD01BE00BA4647 /* CHRSegmentedControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CHRSegmentedControl.h; sourceTree = "<group>"; };
+		83F4B0691CCD01BE00BA4647 /* CHRSegmentedControl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CHRSegmentedControl.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +61,7 @@
 		83F4B04F1CCD00D900BA4647 /* CHRSegmentedControl */ = {
 			isa = PBXGroup;
 			children = (
+				83F4B0671CCD01A500BA4647 /* CHRSegmentedControl */,
 				83F4B0531CCD00D900BA4647 /* AppDelegate.h */,
 				83F4B0541CCD00D900BA4647 /* AppDelegate.m */,
 				83F4B0561CCD00D900BA4647 /* ViewController.h */,
@@ -77,6 +81,15 @@
 				83F4B0511CCD00D900BA4647 /* main.m */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		83F4B0671CCD01A500BA4647 /* CHRSegmentedControl */ = {
+			isa = PBXGroup;
+			children = (
+				83F4B0681CCD01BE00BA4647 /* CHRSegmentedControl.h */,
+				83F4B0691CCD01BE00BA4647 /* CHRSegmentedControl.m */,
+			);
+			path = CHRSegmentedControl;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -151,6 +164,7 @@
 			files = (
 				83F4B0581CCD00D900BA4647 /* ViewController.m in Sources */,
 				83F4B0551CCD00D900BA4647 /* AppDelegate.m in Sources */,
+				83F4B06A1CCD01BE00BA4647 /* CHRSegmentedControl.m in Sources */,
 				83F4B0521CCD00D900BA4647 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
