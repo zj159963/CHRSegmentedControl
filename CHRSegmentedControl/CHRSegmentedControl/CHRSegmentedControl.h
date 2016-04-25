@@ -20,28 +20,33 @@ typedef void(^CHRSegmentedControlSelectedCallback)( CHRSegmentedControl * _Nonnu
 /// 标题， 可以为 NSString 或者是 NSAttributedString
 @property (nonatomic, readonly, copy, nullable) NSArray *titles;
 
-/// 选中索引的标题， 默认为 titles， 若只想改变某一个索引的选中标题
-/// 传入类型应该与 titles 相同
-/// 使用 - setSelectedTitle:forIndex:
-/// selectedTitles 应该与 titles 的个数一致
-/// eg: titles 只有两个原色， 而selectedTitles 有三个元素
-@property (nonatomic, readwrite, copy, nullable) NSArray *selectedTitles;
+/// 选中索引的标题， 默认为 titles
+/// 若要改变某一组元素的选中标题，使用 - setSelectedTitles: forRange:
+@property (nonatomic, readonly, copy, nullable) NSArray *selectedTitles;
 
 /// 所有索引的标题颜色， 默认为 [UIColor blueColor]
 @property (nonatomic, readwrite, strong, nullable) UIColor *titleColor;
 
-/// 选中索引的标题颜色， 默认为 [UIColor grayColor]
+/// 选中索引的标题颜色， 默认为 [UIColor whiteColor]
 @property (nonatomic, readwrite, strong, nullable) UIColor *selectedTitleColor;
 
-/// 所有索引的背景颜色， 默认为 [UIColor whiteColor]
-/// 若要设置某一组索引的背景颜色，使用 - setItemBackgroundColor: forIndexSet:
+/// 所有索引的背景颜色， 默认为 selectedTitleColor
+/// 若要设置某一组索引的背景颜色，使用 - setItemBackgroundColor: forRange:
 @property (nonatomic, readwrite, strong, nullable) UIColor *itemBackgroundColor;
 
-/// 所有索引的选中背景颜色， 默认为 [UIColor whiteColor]
-/// 若要设置某一组索引的选中背景颜色，使用 - setSelectedBackgroundColor:forIndexSet:
+/// 所有索引的选中背景颜色， 默认为 titleColor
+/// 若要设置某一组索引的选中背景颜色，使用 - setSelectedBackgroundColor:f forRange:
 @property (nonatomic, readwrite, strong, nullable) UIColor *selectedBackgroundColor;
 
-/// 底部选中提示条颜色， 默认为 selectedTitleColor
+/// 所有索引的标题字体， 默认为 [UIFont systemFontOfSize: 16]
+/// 若要设置某一组索引的标题字体，使用 - setTitleAttributes: forRange:
+@property (nonatomic, readwrite, strong, nullable) UIFont *titleFont;
+
+/// 选中索引的标题字体， 默认为 [UIFont boldSystemFontOfSize: 16]
+/// 若要设置某一组索引的标题选中字体 使用 - setSelectedTitleAttributes: forIndexSet:
+@property (nonatomic, readwrite, strong, nullable) UIFont *selectedTitleFont;
+
+/// 底部选中提示条颜色， 默认为 titleColor
 @property (nonatomic, readwrite, strong, nullable) UIColor *indicatorColor;
 
 /// 底部选中提示条占每个索引的宽度的百分比， 默认为 0.8
@@ -50,7 +55,7 @@ typedef void(^CHRSegmentedControlSelectedCallback)( CHRSegmentedControl * _Nonnu
 /// 底部选中指示条的高度， 默认为 1.0
 @property (nonatomic, readwrite, assign) CGFloat indicatorHeight;
 
-/// 索引之间的分割线颜色， 默认为蓝色
+/// 索引之间的分割线颜色， 默认为 titleColor
 @property (nonatomic, readwrite, strong, nullable) UIColor *seperatorColor;
 
 /// 分割线占整个 segmentedControl 的高度的百分比, 默认为 0.8
@@ -62,12 +67,24 @@ typedef void(^CHRSegmentedControlSelectedCallback)( CHRSegmentedControl * _Nonnu
 /// 所有索引是否等宽， 默认为 YES
 @property (nonatomic, readwrite, assign) BOOL itemWidthEqually;
 
-/// 选中的索引
+/// 选中的索引，默认为 0
 @property (nonatomic, readwrite, assign) NSUInteger selectedIndex;
+
+/// 正常计算的宽高，正好容纳标题内容，通常我们需要加宽和高
+/// 每个索引的宽和高 都增加，itemSizeIncrease.width 和 itemSizeIncrease.height
+/// eg: @"1" 这个索引， sizeToFit 后，计算出宽高为 {20, 20}
+///     设置 itemSizeIncrease 为 {10, 5}
+///     那么显示时， 真正的 itemSize 为 {30, 25}
+/// 默认为 CGSizeMake(8.0, 8.0)
+@property (nonatomic, readwrite, assign) CGSize itemSizeIncrease;
+
+/// 点击选择的手势
+@property (nonatomic, readonly, strong, nonnull) UIGestureRecognizer *selectGestureRecgnizer;
 
 /// 是否可以重复选中
 /// eg: 当前共有三个索引，选中了第三个索引
 ///     当用户再次选中第三个索引，是否会触发 selectedCallBack 或者 target 事件
+/// 默认为 NO
 @property (nonatomic, readwrite, getter=isSelectRepeatable, assign) BOOL selectRepeatable;
 
 /// 选中索引的 callback
@@ -79,33 +96,43 @@ typedef void(^CHRSegmentedControlSelectedCallback)( CHRSegmentedControl * _Nonnu
 
 - (nonnull instancetype)initWithTitles:(nullable NSArray *)titles;
 
-/// 设置某个索引的选中标题， 索引不能超过 titles 的范围
-/// eg: titles 只有两个元素， 而入参 Index 为 2
-- (void)setSelectedTitle:(nullable NSString *)selectedTitle forIndex:(NSUInteger)index;
+#pragma mark - Methods
+
+/// 设置某个索引的选中标题， range 不能超过 titles 的范围
+/// eg: titles 只有两个元素， 而入参 range 为 (1, 3)
+- (void)setSelectedTitles:(nullable NSArray *)selectedTitles forRange:(NSRange)range;
 
 /// 设置某一组索引的标题颜色， 若入参 titleColor 为 nil
 /// 则该组索引的标题颜色为 titleColor
-/// indexSet 不能超出 titles 的范围
-- (void)setTitleColor:(nullable UIColor *)titleColor forIndexSet:(nullable NSIndexSet *)indexSet;
+/// range 不能超出 titles 的范围
+- (void)setTitleColor:(nullable UIColor *)titleColor forRange:(NSRange)range;
 
 /// 设置某一组索引标题的选中颜色， 若入参 selectedTitleColor 为 nil
 /// 则该组索引标题的选中颜色为 selectedTitleColor
-/// indexSet 不能超出 titles 范围
-- (void)setSelectedTitleColor:(nullable UIColor *)selectedTitleColor forIndexSet:(nullable NSIndexSet *)indexSet;
+/// range 不能超出 titles 范围
+- (void)setSelectedTitleColor:(nullable UIColor *)selectedTitleColor forRange:(NSRange)range;
 
 /// 设置某一组索引标题的 attributes
-/// indexSet 不能超出 titles 范围
-- (void)setTitleAttributes:(nullable NSDictionary *)attributes forIndexSet:(nullable NSIndexSet *)indexSet;
+/// range 不能超出 titles 范围
+- (void)setTitleAttributes:(nullable NSDictionary *)attributes forRange:(NSRange)range;
 
 /// 设置某一组索引的选中标题 attributes
-//  indexSet 不能超出 titles 范围
-- (void)setSelectedTitleAttributes:(nullable NSDictionary *)attributes forIndexSet:(nullable NSIndexSet *)indexSet;
+//  range 不能超出 titles 范围
+- (void)setSelectedTitleAttributes:(nullable NSDictionary *)attributes forRange:(NSRange)range;
 
-/// 设置某一组索引的背景颜色， index 不能超出 titles 范围
-- (void)setItemBackgroundColor:(nullable UIColor *)itemBackgroundColor forIndexSet:(nullable NSIndexSet *)indexSet;
+/// 所有索引的标题字体
+/// range 不能超出 titles 范围
+- (void)setTitleFont:(nullable UIFont *)titleFont forRange:(NSRange)range;
 
-/// 设置某一组索引的选中背景颜色， indexSet 不能超出 titles 范围
-- (void)setSelectedBackgroundColor:(nullable UIColor *)selectedBackgroundColor forIndexSet:(nullable NSIndexSet *)indexSet;
+/// 设置某一组索引的选中索引的标题字体
+/// range 不能超出 titles 范围
+- (void)setSelectedTitleFont:(nullable UIFont *)selectedTitleFont forRange:(NSRange)range;
+
+/// 设置某一组索引的背景颜色， range 不能超出 titles 范围
+- (void)setItemBackgroundColor:(nullable UIColor *)itemBackgroundColor forRange:(NSRange)range;
+
+/// 设置某一组索引的选中背景颜色， range 不能超出 titles 范围
+- (void)setSelectedBackgroundColor:(nullable UIColor *)selectedBackgroundColor forRange:(NSRange)range;
 
 /// 以动画或者非动画的方式，设置选中的索引
 - (void)setSelectedIndex:(NSUInteger)selectedIndex animated:(BOOL)animated;
@@ -113,6 +140,16 @@ typedef void(^CHRSegmentedControlSelectedCallback)( CHRSegmentedControl * _Nonnu
 /// 标记更新开始
 /// 开始之后，若没有提交（- commit），则设置 selectedIndex 方法均无效
 - (void)beginUpdate;
+
+/// 插入一个索引
+/// 应该先调用 - beginUpdate
+/// 完成后调用 - commit
+- (void)insertItem:(nullable id)title atIndex:(NSUInteger)index;
+
+/// 删除一个索引
+/// 应该先调用 - beginUpdate
+/// 完成后调用 - commit
+- (void)deleteItem:(nullable id)title atIndex:(NSUInteger)index;
 
 /// 设置选中索引的偏移量
 /// @param offset [0, 1]

@@ -7,6 +7,7 @@
 //
 
 #import "ViewController.h"
+#import "CHRSegmentedControl.h"
 
 @interface ViewController ()
 
@@ -16,14 +17,27 @@
 
 - (void)viewDidLoad {
   [super viewDidLoad];
-  // Do any additional setup after loading the view, typically from a nib.
   
-
+  CHRSegmentedControl *seg = [[CHRSegmentedControl alloc] initWithTitles:@[@"116646", @"2222", @"13"]];
+  seg.itemBackgroundColor = [UIColor yellowColor];
+  seg.selectedBackgroundColor = [UIColor lightGrayColor];
+  seg.itemSizeIncrease = CGSizeMake(80, 20);
+  seg.itemWidthEqually = YES;
+  [seg setSelectedTitles:@[@"First", @"Second", @"Third"] forRange:NSMakeRange(0, 3)];
+  seg.selectedCallback = ^(CHRSegmentedControl *control, NSUInteger selectedIndex){
+    NSLog(@"%@, %lu", control, selectedIndex);
+  };
+  [seg sizeToFit];
+  seg.frame = CGRectIntegral(seg.frame);
+  [self.view addSubview:seg];
 }
 
-- (void)didReceiveMemoryWarning {
-  [super didReceiveMemoryWarning];
-  // Dispose of any resources that can be recreated.
+- (void)viewWillAppear:(BOOL)animated
+{
+  [super viewWillAppear:animated];
+  
+  CHRSegmentedControl *seg = ((CHRSegmentedControl *)self.view.subviews.lastObject);
+  seg.center = self.view.center;
 }
 
 @end
