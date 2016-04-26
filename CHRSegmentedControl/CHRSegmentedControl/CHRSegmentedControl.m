@@ -55,6 +55,7 @@ CHRSegmentedControlRangeAssert(range, description) \
 @property (nonatomic, readwrite, strong) NSMutableArray <NSString *> *itemSizes;
 @property (nonatomic, readwrite, strong, nonnull) UIGestureRecognizer *selectGestureRecgnizer;
 @property (nonatomic, readwrite, strong) CALayer *indicatorLayer;
+@property (nonatomic, readwrite, assign) BOOL updating;
 
 @end
 
@@ -76,11 +77,9 @@ CHRSegmentedControlRangeAssert(range, description) \
 #pragma mark - 初始化设置
 - (void)p_initializeWithTitles:(NSArray *)titles
 {
-  if (titles.count == 0 || [titles isEqual:[NSNull null]]) return;
-  
-  NSUInteger titleCount = titles.count;
-  
-  _innerTitles = [titles mutableCopy];
+  self.clipsToBounds = YES;
+  _updating = NO;
+  _innerTitles = titles == nil ? [NSMutableArray array] : [titles mutableCopy];
   _innerSelectedTitles = [_innerTitles mutableCopy];
   _titleColor = [UIColor blueColor];
   _selectedTitleColor = [UIColor whiteColor];
@@ -98,17 +97,16 @@ CHRSegmentedControlRangeAssert(range, description) \
   _itemSize = CGSizeZero;
   _itemSizeIncrease = CGSizeMake(8.0, 8.0);
   _selectedIndex = 0;
-  _titleLayers = [NSMutableArray arrayWithCapacity:titleCount];
-  _seperatorLayers = [NSMutableArray arrayWithCapacity:titleCount - 1];
+  _titleLayers = [NSMutableArray array];
+  _seperatorLayers = [NSMutableArray array];
   
   /// 构造 title Layers 和 seperatorLayers
-  [titles enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+  [_innerTitles enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
     /// 构造 titleLayer
     CHRSegmentedLayer *titleLayer = [CHRSegmentedLayer layer];
     [_titleLayers addObject:titleLayer];
-    
     /// 构造 seperator
-    if (idx != titleCount - 2) {
+    if (idx > 0) {
       CALayer *seperatorLayer = [CALayer layer];
       [_seperatorLayers addObject:seperatorLayer];
     }
@@ -117,7 +115,7 @@ CHRSegmentedControlRangeAssert(range, description) \
   /// 构造底部指示条
   _indicatorLayer = [CALayer layer];
   
-  _selectGestureRecgnizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tap:)];
+  _selectGestureRecgnizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(p_tap:)];
   [self addGestureRecognizer:_selectGestureRecgnizer];
   self.selectedIndex = 0;
 }
@@ -137,7 +135,7 @@ CHRSegmentedControlRangeAssert(range, description) \
 {
   if (!_innerTitleColors) {
     NSUInteger titleCount = self.innerTitles.count;
-    _innerTitleColors = [NSMutableArray arrayWithCapacity: titleCount];
+    _innerTitleColors = [NSMutableArray array];
     for (NSUInteger index = 0; index < titleCount; index++) {
       [_innerTitleColors addObject:self.titleColor];
     }
@@ -149,7 +147,7 @@ CHRSegmentedControlRangeAssert(range, description) \
 {
   if (!_innerSelectedTitleColors) {
     NSUInteger titleCount = self.innerTitles.count;
-    _innerSelectedTitleColors = [NSMutableArray arrayWithCapacity:titleCount];
+    _innerSelectedTitleColors = [NSMutableArray array];
     for (NSUInteger index = 0; index < titleCount; index++) {
       [_innerSelectedTitleColors addObject:self.selectedTitleColor];
     }
@@ -161,7 +159,7 @@ CHRSegmentedControlRangeAssert(range, description) \
 {
   if (!_innerTitleAttributes) {
     NSUInteger titleCount = self.innerTitles.count;
-    _innerTitleAttributes = [NSMutableArray arrayWithCapacity:titleCount];
+    _innerTitleAttributes = [NSMutableArray array];
     for (NSUInteger index = 0; index < titleCount; index++) {
       [_innerTitleAttributes addObject:@{}];
     }
@@ -173,7 +171,7 @@ CHRSegmentedControlRangeAssert(range, description) \
 {
   if (!_innerSelectedTitleAttributes) {
     NSUInteger titleCount = self.innerTitles.count;
-    _innerSelectedTitleAttributes = [NSMutableArray arrayWithCapacity:titleCount];
+    _innerSelectedTitleAttributes = [NSMutableArray array];
     for (NSUInteger index = 0; index < titleCount; index++) {
       [_innerSelectedTitleAttributes addObject:@{}];
     }
@@ -185,7 +183,7 @@ CHRSegmentedControlRangeAssert(range, description) \
 {
   if (!_innerTitleFonts) {
     NSUInteger titleCount = self.innerTitles.count;
-    _innerTitleFonts = [NSMutableArray arrayWithCapacity:titleCount];
+    _innerTitleFonts = [NSMutableArray array];
     for (NSUInteger index = 0; index < titleCount; index++) {
       [_innerTitleFonts addObject:self.titleFont];
     }
@@ -197,7 +195,7 @@ CHRSegmentedControlRangeAssert(range, description) \
 {
   if (!_innerSelectedTitleFonts) {
     NSUInteger titleCount = self.innerTitles.count;
-    _innerSelectedTitleFonts = [NSMutableArray arrayWithCapacity:titleCount];
+    _innerSelectedTitleFonts = [NSMutableArray array];
     for (NSUInteger index = 0; index < titleCount; index++) {
       [_innerSelectedTitleFonts addObject:self.selectedTitleFont];
     }
@@ -209,7 +207,7 @@ CHRSegmentedControlRangeAssert(range, description) \
 {
   if (!_innerItemBackgroundColors) {
     NSUInteger titleCount = self.innerTitles.count;
-    _innerItemBackgroundColors = [NSMutableArray arrayWithCapacity:titleCount];
+    _innerItemBackgroundColors = [NSMutableArray array];
     for (NSUInteger index = 0; index < titleCount; index++) {
       [_innerItemBackgroundColors addObject:self.itemBackgroundColor];
     }
@@ -221,7 +219,7 @@ CHRSegmentedControlRangeAssert(range, description) \
 {
   if (!_innerSelectedBackgroundColors) {
     NSUInteger titleCount = self.innerTitles.count;
-    _innerSelectedBackgroundColors = [NSMutableArray arrayWithCapacity:titleCount];
+    _innerSelectedBackgroundColors = [NSMutableArray array];
     for (NSUInteger index = 0; index < titleCount; index++) {
       [_innerSelectedBackgroundColors addObject:self.selectedBackgroundColor];
     }
@@ -232,9 +230,7 @@ CHRSegmentedControlRangeAssert(range, description) \
 - (void)setSelectedIndex:(NSUInteger)selectedIndex
 {
   _selectedIndex = selectedIndex;
-  [self.titleLayers enumerateObjectsUsingBlock:^(CHRSegmentedLayer * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-    [obj setSelected:idx == selectedIndex];
-  }];
+  [self setNeedsLayout];
 }
 
 - (NSMutableArray<NSString *> *)itemSizes
@@ -335,19 +331,95 @@ CHRSegmentedControlRangeAssert(range, description) \
   }
 }
 
+- (void)insertItem:(id)title atIndex:(NSUInteger)index
+{
+  [self.innerTitles addObject:[title copy]];
+  [self.innerSelectedTitles addObject:[title copy]];
+  CHRSegmentedLayer *layer = [CHRSegmentedLayer layer];
+  [self.titleLayers insertObject:layer atIndex:index];
+  CALayer *seperatorLayer = [CALayer layer];
+  [self.seperatorLayers addObject:seperatorLayer];
+  [self sizeToFit];
+}
+
+- (void)deleteItemAtIndex:(NSUInteger)index
+{
+  if (self.innerTitles.count == 0 || index > self.innerTitles.count - 1) return;
+  
+  /// 删除多余的分割线
+  if (index == self.innerTitles.count - 1) {
+    [self.seperatorLayers.lastObject removeFromSuperlayer];
+    [self.seperatorLayers removeLastObject];
+  } else if (index == 0) {
+    [self.seperatorLayers.firstObject removeFromSuperlayer];
+    [self.seperatorLayers removeObjectAtIndex:0];
+  } else if (self.seperatorLayers.count > 0) {
+    [self.seperatorLayers[index] removeFromSuperlayer];
+    [self.seperatorLayers removeObjectAtIndex:index];
+  }
+  
+  /// 删除标题和 标题层
+  [self.innerTitles removeObjectAtIndex:index];
+  [self.innerSelectedTitles removeObjectAtIndex:index];
+  [self.titleLayers[index] removeFromSuperlayer];
+  [self.titleLayers removeObjectAtIndex:index];
+  
+  /// 处理删除后的选中索引
+  if (index < self.selectedIndex) {
+    self.selectedIndex = self.selectedIndex - 1;
+  } else if (index == self.selectedIndex) {
+    self.selectedIndex = index == 0 ? 0 : index - 1;
+  }
+  
+  /// 更新大小
+  [self sizeToFit];
+}
+
+- (void)beginUpdate
+{
+  self.updating = YES;
+  self.userInteractionEnabled = NO;
+}
+
+- (void)commit
+{
+  self.updating = NO;
+  self.userInteractionEnabled = YES;
+}
+
+- (void)setOffset:(CGFloat)offset
+{
+  _offset = offset;
+  [CATransaction begin];
+  [CATransaction setAnimationDuration:0.0];
+  self.indicatorLayer.position = CGPointMake((self.bounds.size.width - self.indicatorLayer.bounds.size.width)* offset + self.indicatorLayer.bounds.size.width / 2.0,
+                                             self.indicatorLayer.position.y);
+  [CATransaction commit];
+}
+
+#pragma mark - Override
+- (void)layoutSubviews
+{
+  [super layoutSubviews];
+  
+  [self p_reload];
+}
+
 - (CGSize)sizeThatFits:(CGSize)size
 {
+  if (self.innerTitles.count == 0) return CGSizeZero;
+  
   if (self.itemWidthEqually) {
     __block CGFloat maxWidth = 0.0;
     __block CGFloat maxHeight = 0.0;
     
-    [self.titles enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+    [self.innerTitles enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
       if ([obj isKindOfClass:[NSString class]]) {
         NSString *string = obj;
         CGSize contentSize = [string boundingRectWithSize:size
-                                                   options:NSStringDrawingUsesLineFragmentOrigin
-                                                attributes:@{NSFontAttributeName : self.titleFont}
-                                                   context:nil].size;
+                                                  options:NSStringDrawingUsesLineFragmentOrigin
+                                               attributes:@{NSFontAttributeName : self.titleFont}
+                                                  context:nil].size;
         maxWidth = maxWidth > contentSize.width ? maxWidth : contentSize.width;
         maxHeight = maxHeight > contentSize.height ? maxHeight : contentSize.height;
       } else {
@@ -359,14 +431,17 @@ CHRSegmentedControlRangeAssert(range, description) \
         maxHeight = maxHeight > contentSize.height ? maxHeight : contentSize.height;
       }
     }];
-    self.itemSize = CGSizeMake(maxWidth + self.itemSizeIncrease.width, maxHeight + self.itemSizeIncrease.height);
-    return CGSizeMake((maxWidth + self.itemSizeIncrease.width) * self.titles.count, maxHeight + self.itemSizeIncrease.height);
+    self.itemSize = CGSizeMake(maxWidth + self.itemSizeIncrease.width,
+                               maxHeight + self.itemSizeIncrease.height);
+    return CGSizeMake(self.itemSize.width * self.innerTitles.count + (self.innerTitles.count - 1) * self.seperatorWidth,
+                      self.itemSize.height);
   }
   
+  [self.itemSizes removeAllObjects];
   __block CGFloat totalWidth = 0.0;
   __block CGFloat maxHeight = 0.0;
   [self.itemSizes removeAllObjects];
-  [self.titles enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+  [self.innerTitles enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
     if ([obj isKindOfClass:[NSString class]]) {
       NSString *string = obj;
       CGSize contentSize = [string boundingRectWithSize:size
@@ -375,8 +450,9 @@ CHRSegmentedControlRangeAssert(range, description) \
                                                 context:nil].size;
       
       /// 存储根据 itemSizeIncreasing 计算过的 size
-      CGSize realSize = CGSizeMake(contentSize.width + self.itemSizeIncrease.width, contentSize.height + self.itemSizeIncrease.height);
-      totalWidth += contentSize.width + self.itemSizeIncrease.width;
+      CGSize realSize = CGSizeMake(contentSize.width + self.itemSizeIncrease.width,
+                                   contentSize.height + self.itemSizeIncrease.height);
+      totalWidth += realSize.width;
       maxHeight = maxHeight > contentSize.height ? maxHeight : contentSize.height;
       [self.itemSizes addObject:NSStringFromCGSize(realSize)];
     } else {
@@ -385,24 +461,18 @@ CHRSegmentedControlRangeAssert(range, description) \
                                                           options:NSStringDrawingUsesLineFragmentOrigin
                                                           context:nil].size;
       /// 存储根据 itemSizeIncreasing 计算过的 size
-      CGSize realSize = CGSizeMake(contentSize.width + self.itemSizeIncrease.width, contentSize.height + self.itemSizeIncrease.height);
-      totalWidth += contentSize.width + self.itemSizeIncrease.width;
+      CGSize realSize = CGSizeMake(contentSize.width + self.itemSizeIncrease.width,
+                                   contentSize.height + self.itemSizeIncrease.height);
+      totalWidth += realSize.width;
       maxHeight = maxHeight > contentSize.height ? maxHeight : contentSize.height;
       [self.itemSizes addObject:NSStringFromCGSize(realSize)];
     }
   }];
-  return CGSizeMake(totalWidth, maxHeight);
-}
-
-- (void)layoutSubviews
-{
-  [super layoutSubviews];
-  
-  [self p_reload];
+  return CGSizeMake(totalWidth + (self.innerTitles.count - 1) * self.seperatorWidth, maxHeight);
 }
 
 #pragma mark - Gesture Actions
-- (void)tap:(UITapGestureRecognizer *)gesture
+- (void)p_tap:(UITapGestureRecognizer *)gesture
 {
   CGPoint tapPoint = [gesture locationInView:self];
   for (NSUInteger index = 0; index < self.titleLayers.count; index++) {
@@ -424,39 +494,89 @@ CHRSegmentedControlRangeAssert(range, description) \
 
 #pragma mark - Private Methods
 - (void)p_reload
-{
+{ 
+  if (self.innerTitles.count == 0) {
+    [self.indicatorLayer removeFromSuperlayer];
+  }
+  
+  /// 为了计算底部指示条
+  CGFloat selectedTitleLayerFrameOriginX= 0.0;
+  CGSize selectedTitleLayerSize = CGSizeZero;
+  
   for (NSUInteger index = 0; index < self.titleLayers.count; index++) {
-    CHRSegmentedLayer *layer = self.titleLayers[index];
+    
+    /// 配置 标题层
+    CHRSegmentedLayer *titleLayer = self.titleLayers[index];
+    [titleLayer removeFromSuperlayer];
+    
+    CGFloat titleLayerFrameOriginX = 0.0;
+    CGRect titleLayerFrame = CGRectZero;
+    CGSize titleLayerSize = CGSizeZero;
     if (self.itemWidthEqually) {
-      CGRect layerFrame = {index * self.itemSize.width, 0, self.itemSize};
-      layer.frame = CGRectIntegral(layerFrame);
+      titleLayerFrameOriginX = index * (self.itemSize.width + self.seperatorWidth);
+      titleLayerSize = self.itemSize;
+      titleLayerFrame= (CGRect){titleLayerFrameOriginX, 0, titleLayerSize};
     } else {
-      CGSize layerSize = CGSizeZero;
-      CGFloat layerX = 0.0;
       for (NSUInteger jndex = 0; jndex <= index; jndex++) {
         CGSize storedSize = CGSizeFromString(self.itemSizes[jndex]);
-        layerX += jndex > 0 ? CGSizeFromString(self.itemSizes[jndex - 1]).width : 0.0;
+        titleLayerFrameOriginX += jndex > 0 ? CGSizeFromString(self.itemSizes[jndex - 1]).width : 0.0;
         if (jndex == index) {
-          layerSize = storedSize;
+          titleLayerSize = storedSize;
         }
       }
-      CGRect layerFrame = (CGRect) {layerX, 0, layerSize};
-      layer.frame = CGRectIntegral(layerFrame);
+      if (index > 0) {
+        titleLayerFrameOriginX += self.seperatorWidth;
+      }
+      titleLayerFrame = (CGRect) {titleLayerFrameOriginX + self.seperatorWidth, 0, titleLayerSize};
     }
-    [self.layer addSublayer:layer];
-    /// 构造 titleLayer
-    layer.title = self.titles[index];
-    layer.selectedTitle = self.innerSelectedTitles[index];
-    layer.titleColor = self.titleColor.CGColor;
-    layer.selectedTitleColor = self.selectedTitleColor.CGColor;
-    layer.normalBackgroundColor = self.itemBackgroundColor.CGColor;
-    layer.selectedBackgroundColor = self.selectedBackgroundColor.CGColor;
-    layer.font = (__bridge CFTypeRef _Nullable)(self.titleFont.fontName);
-    layer.fontSize = self.titleFont.pointSize;
-    layer.selectedFont = (__bridge CFTypeRef _Nullable)self.selectedTitleFont;
-    layer.selectedFontSize = self.selectedTitleFont.pointSize;
-    [layer setNeedsLayout];
+    titleLayer.frame = CGRectIntegral(titleLayerFrame);
+    
+    titleLayer.title = self.innerTitles[index];
+    titleLayer.selectedTitle = self.innerSelectedTitles[index];
+    titleLayer.titleColor = self.titleColor.CGColor;
+    titleLayer.selectedTitleColor = self.selectedTitleColor.CGColor;
+    titleLayer.normalBackgroundColor = self.itemBackgroundColor.CGColor;
+    titleLayer.selectedBackgroundColor = self.selectedBackgroundColor.CGColor;
+    titleLayer.font = (__bridge CFTypeRef _Nullable)(self.titleFont.fontName);
+    titleLayer.fontSize = self.titleFont.pointSize;
+    titleLayer.selectedFont = (__bridge CFTypeRef _Nullable)self.selectedTitleFont;
+    titleLayer.selectedFontSize = self.selectedTitleFont.pointSize;
+    [titleLayer setNeedsLayout];
+    [self.layer addSublayer:titleLayer];
+    
+    /// 配置分割线层
+    if (index > 0) {
+      CALayer *seperatorLayer = self.seperatorLayers[index - 1];
+      [seperatorLayer removeFromSuperlayer];
+      
+      seperatorLayer.backgroundColor = self.seperatorColor.CGColor;
+      CHRSegmentedLayer *previousLayer = self.titleLayers[index - 1];
+      CGFloat seperatorLayerFrameOriginX = CGRectGetMaxX(previousLayer.frame);
+      CGFloat seperatorLayerHeight = self.bounds.size.height * self.seperatorHeightFactor;
+      CGFloat seperatorLayerFrameOriginY = (self.bounds.size.height - seperatorLayerHeight) / 2.0;
+      CGRect seperatorLayerFrame = (CGRect){seperatorLayerFrameOriginX, seperatorLayerFrameOriginY, self.seperatorWidth, seperatorLayerHeight};
+      seperatorLayer.frame = CGRectIntegral(seperatorLayerFrame);
+      [self.layer addSublayer:seperatorLayer];
+    }
+    
+    if (index == self.selectedIndex) {
+      selectedTitleLayerFrameOriginX = titleLayerFrameOriginX;
+      selectedTitleLayerSize = titleLayerSize;
+    }
   }
+  
+  /// 配置 底部指示条
+  self.indicatorLayer.backgroundColor = self.indicatorColor.CGColor;
+  CGFloat indicatorLayerFrameOriginX = selectedTitleLayerFrameOriginX + selectedTitleLayerSize.width * (1.0 - self.indicatorWidthFactor) / 2.0;
+  CGFloat indicatorLayerWidth = selectedTitleLayerSize.width * self.indicatorWidthFactor;
+  CGFloat indicatorLayerFrameOriginY = self.bounds.size.height - self.indicatorHeight;
+  self.indicatorLayer.frame = (CGRect){indicatorLayerFrameOriginX, indicatorLayerFrameOriginY, indicatorLayerWidth, self.indicatorHeight};
+  [self.layer addSublayer:self.indicatorLayer];
+  
+  /// 更新选中图层和底部指示条
+  [self.titleLayers enumerateObjectsUsingBlock:^(CHRSegmentedLayer * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+    [obj setSelected:idx == self.selectedIndex];
+  }];
 }
 
 @end

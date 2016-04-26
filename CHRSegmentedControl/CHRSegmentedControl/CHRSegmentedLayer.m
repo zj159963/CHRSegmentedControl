@@ -60,7 +60,7 @@
 #pragma mark - Private Method
 - (void)p_reload
 {
-  NSTimeInterval animationDuration = self.selected ? 1.0 : 0.0;
+  NSTimeInterval animationDuration = self.selected ? 0.3 : 0.0;
   CAMediaTimingFunction *timingFunction = self.selected ? [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut] : nil;
   
   [CATransaction begin];

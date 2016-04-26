@@ -92,6 +92,18 @@ typedef void(^CHRSegmentedControlSelectedCallback)( CHRSegmentedControl * _Nonnu
 /// 使用 - addTarget:action:forControlEvents:controlEvents 依然可用
 @property (nonatomic, copy, nullable) CHRSegmentedControlSelectedCallback selectedCallback;
 
+/// 设置选中索引的偏移量
+/// @param offset [0, 1]
+/// 在设置该属性之前， 总是应该使用 - beginUpdate， 并在结束的时候调用 - commit
+/// 用于基于 scrollView 偏移量等类似的情况更改索引，在提交（- commit）之后，会自动选择距离最近的一个索引
+/// 若调用此方法前没有调用 - beginUpdate 或者已经调用了提交方法（- commit）后，则此方法无效
+/// eg: 一个 scrollView 的 contentSize 为 [100.0, 0.0]
+///     要使 segmentedControl 根据 scrollView 的偏移量变化而变化，应该滚动的时候：
+///     1.先调用 - beginUpdate
+///     2.调用 - setOffset: fabs(scrollView.contentOffset.x)
+///     3.提交， 在 scrollView scrollViewDidEndDecelerating 时， 调用 -commit
+@property (nonatomic, readwrite, assign) CGFloat offset;
+
 #pragma mark - Initializers
 
 - (nonnull instancetype)initWithTitles:(nullable NSArray *)titles;
@@ -149,19 +161,7 @@ typedef void(^CHRSegmentedControlSelectedCallback)( CHRSegmentedControl * _Nonnu
 /// 删除一个索引
 /// 应该先调用 - beginUpdate
 /// 完成后调用 - commit
-- (void)deleteItem:(nullable id)title atIndex:(NSUInteger)index;
-
-/// 设置选中索引的偏移量
-/// @param offset [0, 1]
-/// 在调用这个方法之前， 总是应该使用 - beginUpdate， 并在结束的时候调用 - commit
-/// 用于基于 scrollView 偏移量等类似的情况更改索引，在提交（- commit）之后，会自动选择距离最近的一个索引
-/// 若调用此方法前没有调用 - beginUpdate 或者已经调用了提交方法（- commit）后，则此方法无效
-/// eg: 一个 scrollView 的 contentSize 为 [100.0, 0.0]
-///     要使 segmentedControl 根据 scrollView 的偏移量变化而变化，应该滚动的时候：
-///     1.先调用 - beginUpdate
-///     2.调用 - setOffset: fabs(scrollView.contentOffset.x)
-///     3.提交， 在 scrollView scrollViewDidEndDecelerating 时， 调用 -commit
-- (void)setOffset:(CGFloat)offset;
+- (void)deleteItemAtIndex:(NSUInteger)index;
 
 /// 提交更新， 标记更新结束
 - (void)commit;
