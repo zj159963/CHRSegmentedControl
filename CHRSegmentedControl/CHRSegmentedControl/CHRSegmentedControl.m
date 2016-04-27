@@ -10,7 +10,7 @@
 #import "CHRSegmentedLayer.h"
 
 #define CHRSegmentedControlRangeAssert(range, description) \
-if ((range).length > self.innerSelectedTitles.count) {\
+if ((range).length + (range).location > self.innerSelectedTitles.count) {\
 NSString *assertInfo = [NSString stringWithFormat:@"%s at line: %d\n %@", __PRETTY_FUNCTION__, __LINE__, (description)];\
 NSAssert(NO, assertInfo);\
 };
@@ -55,7 +55,6 @@ CHRSegmentedControlRangeAssert(range, description) \
 @property (nonatomic, readwrite, strong) NSMutableArray <NSString *> *itemSizes;
 @property (nonatomic, readwrite, strong, nonnull) UIGestureRecognizer *selectGestureRecgnizer;
 @property (nonatomic, readwrite, strong) CALayer *indicatorLayer;
-@property (nonatomic, readwrite, assign) BOOL updating;
 
 @end
 
@@ -78,7 +77,6 @@ CHRSegmentedControlRangeAssert(range, description) \
 - (void)p_initializeWithTitles:(NSArray *)titles
 {
   self.clipsToBounds = YES;
-  _updating = NO;
   _innerTitles = titles == nil ? [NSMutableArray array] : [titles mutableCopy];
   _innerSelectedTitles = [_innerTitles mutableCopy];
   _titleColor = [UIColor blueColor];
@@ -96,9 +94,9 @@ CHRSegmentedControlRangeAssert(range, description) \
   _itemWidthEqually = YES;
   _itemSize = CGSizeZero;
   _itemSizeIncrease = CGSizeMake(8.0, 8.0);
-  _selectedIndex = 0;
   _titleLayers = [NSMutableArray array];
   _seperatorLayers = [NSMutableArray array];
+  _selectedIndex = 0;
   
   /// 构造 title Layers 和 seperatorLayers
   [_innerTitles enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -115,9 +113,9 @@ CHRSegmentedControlRangeAssert(range, description) \
   /// 构造底部指示条
   _indicatorLayer = [CALayer layer];
   
+  /// 点击选中手势
   _selectGestureRecgnizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(p_tap:)];
   [self addGestureRecognizer:_selectGestureRecgnizer];
-  self.selectedIndex = 0;
 }
 
 #pragma mark - Getters and Setters
@@ -229,8 +227,20 @@ CHRSegmentedControlRangeAssert(range, description) \
 
 - (void)setSelectedIndex:(NSUInteger)selectedIndex
 {
-  _selectedIndex = selectedIndex;
   [self setNeedsLayout];
+  if (_selectedIndex == selectedIndex) {
+    if (self.selectRepeatable) {
+      if (self.selectedCallback) {
+        self.selectedCallback(self, selectedIndex);
+      }
+    }
+    return;
+  }
+  if (self.selectedCallback) {
+    self.selectedCallback(self, selectedIndex);
+  }
+  [self sendActionsForControlEvents:UIControlEventValueChanged];
+  _selectedIndex = selectedIndex;
 }
 
 - (NSMutableArray<NSString *> *)itemSizes
@@ -264,7 +274,7 @@ CHRSegmentedControlRangeAssert(range, description) \
   CHRSegmentedControlRangeAssert(range, @"批量设置标题颜色失败， range 超出 titles 范围");
   
   for (NSUInteger index = range.location; index < range.location + range.length; index++) {
-    self.innerTitleColors[index - range.location] = titleColor;
+    self.innerTitleColors[index] = titleColor;
   }
 }
 
@@ -273,7 +283,7 @@ CHRSegmentedControlRangeAssert(range, description) \
   CHRSegmentedControlRangeAssert(range, @"批量设置选中标题颜色失败， range 超出 titles 范围");
   
   for (NSUInteger index = range.location; index < range.location + range.length; index++) {
-    self.innerSelectedTitleColors[index - range.location] = selectedTitleColor;
+    self.innerSelectedTitleColors[index] = selectedTitleColor;
   }
 }
 
@@ -282,7 +292,7 @@ CHRSegmentedControlRangeAssert(range, description) \
   CHRSegmentedControlRangeAssert(range, @"批量设置标题属性失败， range 超出 titles 范围");
   
   for (NSUInteger index = range.location; index < range.location + range.length; index++) {
-    self.innerTitleAttributes[index - range.location] = attributes;
+    self.innerTitleAttributes[index] = attributes;
   }
 }
 
@@ -291,7 +301,7 @@ CHRSegmentedControlRangeAssert(range, description) \
   CHRSegmentedControlRangeAssert(range, @"批量设置选中标题属性失败， range 超出 titles 范围");
   
   for (NSUInteger index = range.location; index < range.location + range.length; index++) {
-    self.innerSelectedTitleAttributes[index - range.location] = attributes;
+    self.innerSelectedTitleAttributes[index] = attributes;
   }
 }
 
@@ -300,7 +310,7 @@ CHRSegmentedControlRangeAssert(range, description) \
   CHRSegmentedControlRangeAssert(range, @"批量设置标题字体失败， range 超出 titles 范围");
   
   for (NSUInteger index = range.location; index < range.location + range.length; index++) {
-    self.innerTitleFonts[index - range.location] = titleFont;
+    self.innerTitleFonts[index] = titleFont;
   }
 }
 
@@ -309,7 +319,7 @@ CHRSegmentedControlRangeAssert(range, description) \
   CHRSegmentedControlRangeAssert(range, @"批量设置选中标题字体失败， range 超出 titles 范围");
   
   for (NSUInteger index = range.location; index < range.location + range.length; index++) {
-    self.innerSelectedTitleFonts[index - range.location] = selectedTitleFont;
+    self.innerSelectedTitleFonts[index] = selectedTitleFont;
   }
 }
 
@@ -318,7 +328,7 @@ CHRSegmentedControlRangeAssert(range, description) \
   CHRSegmentedControlRangeAssert(range, @"批量设置背景颜色失败， range 超出 titles 范围");
   
   for (NSUInteger index = range.location; index < range.location + range.length; index++) {
-    self.innerItemBackgroundColors[index - range.location] = itemBackgroundColor;
+    self.innerItemBackgroundColors[index] = itemBackgroundColor;
   }
 }
 
@@ -327,7 +337,7 @@ CHRSegmentedControlRangeAssert(range, description) \
   CHRSegmentedControlRangeAssert(range, @"批量设置选中背景颜色失败， range 超出 titles 范围");
   
   for (NSUInteger index = range.location; index < range.location + range.length; index++) {
-    self.innerSelectedBackgroundColors[index - range.location] = selectedBackgroundColor;
+    self.innerSelectedBackgroundColors[index] = selectedBackgroundColor;
   }
 }
 
@@ -377,14 +387,25 @@ CHRSegmentedControlRangeAssert(range, description) \
 
 - (void)beginUpdate
 {
-  self.updating = YES;
   self.userInteractionEnabled = NO;
 }
 
 - (void)commit
 {
-  self.updating = NO;
   self.userInteractionEnabled = YES;
+  CGFloat minimumOffset = CGFLOAT_MAX;
+  NSUInteger selectedIndexForUpdating = 0;
+  for (CHRSegmentedLayer *titleLayer in self.titleLayers) {
+    CGFloat offset = fabs(CGRectGetMidX(self.indicatorLayer.frame) - CGRectGetMidX(titleLayer.frame));
+    if (offset < minimumOffset) {
+      minimumOffset = offset;
+      selectedIndexForUpdating = [self.titleLayers indexOfObject:titleLayer];
+    }
+  }
+  
+  self.selectedIndex = selectedIndexForUpdating;
+  
+  
 }
 
 - (void)setOffset:(CGFloat)offset
@@ -471,22 +492,14 @@ CHRSegmentedControlRangeAssert(range, description) \
   return CGSizeMake(totalWidth + (self.innerTitles.count - 1) * self.seperatorWidth, maxHeight);
 }
 
-#pragma mark - Gesture Actions
-- (void)p_tap:(UITapGestureRecognizer *)gesture
+#pragma mark - UserInterface Actions
+- (void)p_tap:(UITapGestureRecognizer *)gestureRecognizer
 {
-  CGPoint tapPoint = [gesture locationInView:self];
+  CGPoint tapPoint = [gestureRecognizer locationInView:self];
   for (NSUInteger index = 0; index < self.titleLayers.count; index++) {
     CHRSegmentedLayer *layer = self.titleLayers[index];
     if (CGRectContainsPoint(layer.frame, tapPoint)) {
-      
-      if (self.selectedIndex == index && !self.isSelectRepeatable) return;
-      
       self.selectedIndex = index;
-      if (self.selectedCallback) {
-        self.selectedCallback(self, index);
-      }
-      
-      [self sendActionsForControlEvents:UIControlEventValueChanged];
       return;
     }
   }
@@ -533,14 +546,14 @@ CHRSegmentedControlRangeAssert(range, description) \
     
     titleLayer.title = self.innerTitles[index];
     titleLayer.selectedTitle = self.innerSelectedTitles[index];
-    titleLayer.titleColor = self.titleColor.CGColor;
-    titleLayer.selectedTitleColor = self.selectedTitleColor.CGColor;
-    titleLayer.normalBackgroundColor = self.itemBackgroundColor.CGColor;
-    titleLayer.selectedBackgroundColor = self.selectedBackgroundColor.CGColor;
-    titleLayer.font = (__bridge CFTypeRef _Nullable)(self.titleFont.fontName);
-    titleLayer.fontSize = self.titleFont.pointSize;
-    titleLayer.selectedFont = (__bridge CFTypeRef _Nullable)self.selectedTitleFont;
-    titleLayer.selectedFontSize = self.selectedTitleFont.pointSize;
+    titleLayer.titleColor = self.innerTitleColors[index].CGColor;
+    titleLayer.selectedTitleColor = self.innerSelectedTitleColors[index].CGColor;
+    titleLayer.normalBackgroundColor = self.innerItemBackgroundColors[index].CGColor;
+    titleLayer.selectedBackgroundColor = self.innerSelectedBackgroundColors[index].CGColor;
+    titleLayer.font = (__bridge CFTypeRef _Nullable)(self.innerTitleFonts[index].fontName);
+    titleLayer.fontSize = self.innerTitleFonts[index].pointSize;
+    titleLayer.selectedFont = (__bridge CFTypeRef _Nullable)self.innerSelectedTitleFonts[index];
+    titleLayer.selectedFontSize = self.innerSelectedTitleFonts[index].pointSize;
     [titleLayer setNeedsLayout];
     [self.layer addSublayer:titleLayer];
     

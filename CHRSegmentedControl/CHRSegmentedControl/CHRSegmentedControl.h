@@ -146,9 +146,6 @@ typedef void(^CHRSegmentedControlSelectedCallback)( CHRSegmentedControl * _Nonnu
 /// 设置某一组索引的选中背景颜色， range 不能超出 titles 范围
 - (void)setSelectedBackgroundColor:(nullable UIColor *)selectedBackgroundColor forRange:(NSRange)range;
 
-/// 以动画或者非动画的方式，设置选中的索引
-- (void)setSelectedIndex:(NSUInteger)selectedIndex animated:(BOOL)animated;
-
 /// 标记更新开始
 /// 开始之后，若没有提交（- commit），则设置 selectedIndex 方法均无效
 - (void)beginUpdate;
