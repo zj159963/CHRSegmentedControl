@@ -32,9 +32,10 @@
   seg.itemWidthEqually = YES;
   seg.seperatorWidth = 1.0;
   seg.indicatorHeight = 4.0;
-  seg.selectedCallback = ^(CHRSegmentedControl *control, NSUInteger selectedIndex){
-    NSLog(@"%@, %lu", control, selectedIndex);
-    [control setItemBackgroundColor:[UIColor blueColor] forRange:NSMakeRange(2, 2)];
+  seg.selectedCallback = ^(CHRSegmentedControl *segmentedControl, NSUInteger selectedIndex){
+    NSLog(@"%@, %lu", segmentedControl, selectedIndex);
+    [segmentedControl setItemBackgroundColor:[UIColor blueColor] forRange:NSMakeRange(2, 2)];
+    [segmentedControl setSelectedBackgroundColor:[UIColor brownColor] forRange:NSMakeRange(0, 2)];
   };
   [seg setSelectedBackgroundColor:[UIColor redColor] forRange:NSMakeRange(0, 2)];
   [seg setItemBackgroundColor:[UIColor cyanColor] forRange:NSMakeRange(2, 2)];
