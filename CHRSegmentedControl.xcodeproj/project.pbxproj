@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		388272481CD099FD00D8C219 /* CHRTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 388272471CD099FD00D8C219 /* CHRTableViewCell.m */; };
 		38A7EA311CCDC84200600F78 /* CHRSegmentedLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 38A7EA301CCDC84200600F78 /* CHRSegmentedLayer.m */; };
 		83F4B0521CCD00D900BA4647 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 83F4B0511CCD00D900BA4647 /* main.m */; };
 		83F4B0551CCD00D900BA4647 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 83F4B0541CCD00D900BA4647 /* AppDelegate.m */; };
@@ -18,6 +19,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		388272461CD099FD00D8C219 /* CHRTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CHRTableViewCell.h; sourceTree = "<group>"; };
+		388272471CD099FD00D8C219 /* CHRTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CHRTableViewCell.m; sourceTree = "<group>"; };
 		38A7EA2F1CCDC84200600F78 /* CHRSegmentedLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CHRSegmentedLayer.h; sourceTree = "<group>"; };
 		38A7EA301CCDC84200600F78 /* CHRSegmentedLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CHRSegmentedLayer.m; sourceTree = "<group>"; };
 		83F4B04D1CCD00D900BA4647 /* CHRSegmentedControl.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CHRSegmentedControl.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -74,6 +77,8 @@
 				83F4B05E1CCD00D900BA4647 /* LaunchScreen.storyboard */,
 				83F4B0611CCD00D900BA4647 /* Info.plist */,
 				83F4B0501CCD00D900BA4647 /* Supporting Files */,
+				388272461CD099FD00D8C219 /* CHRTableViewCell.h */,
+				388272471CD099FD00D8C219 /* CHRTableViewCell.m */,
 			);
 			path = CHRSegmentedControl;
 			sourceTree = "<group>";
@@ -169,6 +174,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				38A7EA311CCDC84200600F78 /* CHRSegmentedLayer.m in Sources */,
+				388272481CD099FD00D8C219 /* CHRTableViewCell.m in Sources */,
 				83F4B0581CCD00D900BA4647 /* ViewController.m in Sources */,
 				83F4B0551CCD00D900BA4647 /* AppDelegate.m in Sources */,
 				83F4B06A1CCD01BE00BA4647 /* CHRSegmentedControl.m in Sources */,

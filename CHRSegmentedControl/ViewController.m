@@ -7,77 +7,56 @@
 //
 
 #import "ViewController.h"
-#import "CHRSegmentedControl.h"
+#import "CHRTableViewCell.h"
 
-@interface ViewController () <UIScrollViewDelegate>
+@interface ViewController () <UITableViewDelegate, UITableViewDataSource>
 
-@property (nonatomic, strong) CHRSegmentedControl *seg;
-@property (nonatomic, strong) IBOutlet UIScrollView *scrollView;
+@property (nonatomic, strong) IBOutlet UITableView *tableView;
 
 @end
 
 @implementation ViewController
 
-- (void)viewDidLoad {
-  [super viewDidLoad];
-  
-  CHRSegmentedControl *seg = [[CHRSegmentedControl alloc] initWithTitles:@[@"A", @"B", @"C", @"D", @"E", @"F"]];
-  seg.titleColor = [UIColor greenColor];
-  seg.itemBackgroundColor = [UIColor whiteColor];
-  seg.selectedTitleColor = [UIColor blackColor];
-  seg.selectedBackgroundColor = [UIColor yellowColor];
-  seg.seperatorColor = [UIColor clearColor];
-  seg.indicatorColor = [UIColor greenColor];
-  seg.itemSizeIncrease = CGSizeMake(50, 20);
-  seg.itemWidthEqually = YES;
-  seg.seperatorWidth = 1.0;
-  seg.indicatorHeight = 4.0;
-  seg.selectedCallback = ^(CHRSegmentedControl *segmentedControl, NSUInteger selectedIndex){
-    NSLog(@"%@, %lu", segmentedControl, selectedIndex);
-    [segmentedControl setItemBackgroundColor:[UIColor blueColor] forRange:NSMakeRange(2, 2)];
-    [segmentedControl setSelectedBackgroundColor:[UIColor brownColor] forRange:NSMakeRange(0, 2)];
-  };
-  [seg setSelectedBackgroundColor:[UIColor redColor] forRange:NSMakeRange(0, 2)];
-  [seg setItemBackgroundColor:[UIColor cyanColor] forRange:NSMakeRange(2, 2)];
-  [seg setSelectedTitles:@[@"1", @"2", @"3", @"4", @"5", @"6"] forRange:NSMakeRange(0, 6)];
-  [seg sizeToFit];
-  CGRect frame = CGRectIntegral(seg.frame);
-  seg.frame = (CGRect) {0, 100, frame.size};
-  [self.view addSubview:seg];
-  self.seg = seg;
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+  return 200;
 }
 
-- (void)viewWillAppear:(BOOL)animated
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-  [super viewWillAppear:animated];
+  CHRTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell" forIndexPath:indexPath];
   
-  self.seg.center = self.view.center;
+  return cell;
+}
+
+- (void)tableView:(UITableView *)tableView willDisplayCell:(CHRTableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+//  [cell.segmentedControl insertItem:@"A" atIndex:0];
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-  [self.seg beginUpdate];
-  CGFloat offset = scrollView.contentOffset.x / scrollView.bounds.size.width;
-  self.seg.offset = offset;
+  for (CHRTableViewCell *cell in self.tableView.visibleCells) {
+    [cell.segmentedControl beginUpdate];
+    CGFloat offset = scrollView.contentOffset.y / scrollView.contentSize.height;
+    cell.segmentedControl.offset = offset;
+  }
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
-  if (!decelerate) {
-    [self.seg commit];
+  for (CHRTableViewCell *cell in self.tableView.visibleCells) {
+    if (!decelerate) {
+      [cell.segmentedControl commit];
+    }
   }
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
-  [self.seg commit];
-}
-
-- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
-{
-  [self.seg removeFromSuperview];
-  
-  self.seg = nil;
+  for (CHRTableViewCell *cell in self.tableView.visibleCells) {
+    [cell.segmentedControl commit];
+  }
 }
 
 @end

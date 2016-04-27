@@ -45,8 +45,6 @@ CHRSegmentedControlRangeAssert(range, description) \
 @property (nonatomic, readwrite, strong) NSMutableArray <CALayer *> *seperatorLayers;
 @property (nonatomic, readwrite, strong) NSMutableArray <UIColor *> *innerTitleColors;
 @property (nonatomic, readwrite, strong) NSMutableArray <UIColor *> *innerSelectedTitleColors;
-@property (nonatomic, readwrite, strong) NSMutableArray <NSDictionary *> *innerTitleAttributes;
-@property (nonatomic, readwrite, strong) NSMutableArray <NSDictionary *> *innerSelectedTitleAttributes;
 @property (nonatomic, readwrite, strong) NSMutableArray <UIFont *> *innerTitleFonts;
 @property (nonatomic, readwrite, strong) NSMutableArray <UIFont *> *innerSelectedTitleFonts;
 @property (nonatomic, readwrite, strong) NSMutableArray <UIColor *> *innerItemBackgroundColors;
@@ -151,30 +149,6 @@ CHRSegmentedControlRangeAssert(range, description) \
     }
   }
   return _innerSelectedTitleColors;
-}
-
-- (NSMutableArray<NSDictionary *> *)innerTitleAttributes
-{
-  if (!_innerTitleAttributes) {
-    NSUInteger titleCount = self.innerTitles.count;
-    _innerTitleAttributes = [NSMutableArray array];
-    for (NSUInteger index = 0; index < titleCount; index++) {
-      [_innerTitleAttributes addObject:@{}];
-    }
-  }
-  return _innerTitleAttributes;
-}
-
-- (NSMutableArray<NSDictionary *> *)innerSelectedTitleAttributes
-{
-  if (!_innerSelectedTitleAttributes) {
-    NSUInteger titleCount = self.innerTitles.count;
-    _innerSelectedTitleAttributes = [NSMutableArray array];
-    for (NSUInteger index = 0; index < titleCount; index++) {
-      [_innerSelectedTitleAttributes addObject:@{}];
-    }
-  }
-  return _innerSelectedTitleAttributes;
 }
 
 - (NSMutableArray<UIFont *> *)innerTitleFonts
@@ -292,7 +266,9 @@ CHRSegmentedControlRangeAssert(range, description) \
   CHRSegmentedControlRangeAssert(range, @"批量设置标题属性失败， range 超出 titles 范围");
   
   for (NSUInteger index = range.location; index < range.location + range.length; index++) {
-    self.innerTitleAttributes[index] = attributes;
+    NSMutableAttributedString *mutableAttributedString = [self.innerTitles[index] mutableCopy];
+    [mutableAttributedString setAttributes:attributes range:NSMakeRange(0, mutableAttributedString.length)];
+    self.innerTitles[index] = [mutableAttributedString copy];
   }
 }
 
@@ -301,7 +277,9 @@ CHRSegmentedControlRangeAssert(range, description) \
   CHRSegmentedControlRangeAssert(range, @"批量设置选中标题属性失败， range 超出 titles 范围");
   
   for (NSUInteger index = range.location; index < range.location + range.length; index++) {
-    self.innerSelectedTitleAttributes[index] = attributes;
+    NSMutableAttributedString *mutableAttributedString = [self.innerSelectedTitles[index] mutableCopy];
+    [mutableAttributedString setAttributes:attributes range:NSMakeRange(0, mutableAttributedString.length)];
+    self.innerSelectedTitles[index] = [mutableAttributedString copy];
   }
 }
 
